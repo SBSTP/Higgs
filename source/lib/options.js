@@ -255,7 +255,6 @@
             }
         }
     }
-    exports._parseOption = parseOption;
 
     /**
      * argv: argument vector, list of arguments
@@ -278,7 +277,6 @@
         }
         return {args: arguments, opts: options};
     }
-    exports._parseArgv = parseArgv;
 
     /**
      * Anything is valid.
@@ -298,7 +296,6 @@
     {
         return /^\-?([0-9]+|[0-9]+\.|\.[0-9]+|[0-9]+\.[0-9]+)$/.test(val);
     }
-    exports._testFloat = testFloat;
 
     /**
      * Same as testFloat, but no negative numbers.
@@ -307,7 +304,6 @@
     {
         return /^([0-9]+|[0-9]+\.|\.[0-9]+|[0-9]+\.[0-9]+)$/.test(val);
     }
-    exports._testFloatPositive = testFloatPositive;
 
     /**
      * 33 | -33
@@ -316,7 +312,6 @@
     {
         return /^\-?[0-9]+$/.test(val);
     }
-    exports._testInt = testInt;
 
     /**
      * Same as testInt, but no negative numbers.
@@ -325,7 +320,6 @@
     {
         return /^[0-9]+$/.test(val);
     }
-    exports._testIntPositive = testIntPositive;
 
     /**
      * Accepts a boolean, or the strings 'on', 'yes', 'true', 'off', 'no', 'false'
@@ -338,7 +332,6 @@
             return true;
         return false;
     }
-    exports._testBoolean = testBoolean;
 
     /**
      * Data validity tests by type.
@@ -389,7 +382,6 @@
                 return val;
         }
     }
-    exports._convertValue = convertValue;
 
     /**
     * opts: options that were parsed
@@ -488,6 +480,22 @@
         return results;
     };
 
-    exports.Options = Options;
+    var singleton = Options();
+    // export constructor on the singleton
+    singleton.Parser = function()
+    {
+        return new Options();
+    };
+    // export functions for testing purposes
+    singleton._parseOption = parseOption;
+    singleton._parseArgv = parseArgv;
+    singleton._testFloat = testFloat;
+    singleton._testFloatPositive = testFloatPositive;
+    singleton._testInt = testInt;
+    singleton._testIntPositive = testIntPositive;
+    singleton._testBoolean = testBoolean;
+    singleton._convertValue = convertValue;
+    // export singleton
+    global.exports = singleton;
 
 })(exports);

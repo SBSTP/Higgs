@@ -1,7 +1,6 @@
-var Options = require('lib/options').Options;
-var console = require('lib/console')
+var console = require('lib/console');
 
-var o = Options()
+var o = require('lib/options')
     // turn on automatic display of help
     .autoHelp()
     // turn on automatic display of version

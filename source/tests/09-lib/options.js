@@ -25,10 +25,10 @@ function test_parseArgv()
 
 function test_parse_result()
 {
-    var o = options.Options()
+    var o = options.Parser()
         .add('long', null)
         .add('double', null, null, null, 'd')
-        .add(null, null, null, null, 's');
+        .add(null, null, 'boolean', null, 's');
 
     var r = o.parse(['--long=val1', '-sd=val2', 'arg1', 'arg2', 'arg3']);
 
@@ -41,7 +41,7 @@ function test_parse_result()
 
 function test_parse_defval()
 {
-    var o = options.Options()
+    var o = options.Parser()
         .add('default', 'qwerty', null, null, 'D');
 
     var r = o.parse([]);
@@ -52,7 +52,7 @@ function test_parse_defval()
 
 function test_parse_convert()
 {
-    var o = options.Options()
+    var o = options.Parser()
         .add('intval', null, 'int')
         .add('floatval', null, 'float')
         .add('yes', null, 'boolean')
