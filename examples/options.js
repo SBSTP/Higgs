@@ -1,14 +1,10 @@
 var console = require('lib/console');
 
 var o = require('lib/options')
-    // turn on automatic display of help
-    .autoHelp()
-    // turn on automatic display of version
-    .autoVersion()
     // set version number
-    .version('1.0.0')
+    .setVersion('1.0.0')
     // set the usage string
-    .usage('file1, file2, fileN')
+    .setUsage('file1, file2, fileN')
     // long option only
     .add('long', null, null, 'long option.')
     // long and short option

@@ -46,13 +46,13 @@
 
         this.helpSpec = {long: 'help', short: null, desc: 'display this help and exit', defval: false, type: 'boolean'};
         this.versionSpec = {long: 'version', short: null, desc: "output version information and exit", defval: false, type: 'boolean'};
+        this._autoHelp = true;
 
         if (config != null)
         {
             this._usage = config.usage;
             this._version = config.version;
             this._autoHelp = config.autoHelp;
-            this._autoVersion = config.autoVersion;
             for (var i = 0; i < config.opts.length; i++)
             {
                 var opt = config.opts[i];
@@ -64,7 +64,7 @@
     /**
      * usage: usage string
      */
-    Options.prototype.usage = function (usage)
+    Options.prototype.setUsage = function (usage)
     {
         this._usage = usage;
         return this;
@@ -73,7 +73,7 @@
     /**
      * version: version string
      */
-    Options.prototype.version = function (version)
+    Options.prototype.setVersion = function (version)
     {
         this._version = version;
         return this;
@@ -83,23 +83,11 @@
      * Turn automatic display of help on or off.
      * on: (optional, defaults to true)
      */
-    Options.prototype.autoHelp = function (on)
+    Options.prototype.setAutoHelp = function (on)
     {
-        if (on == null) on = true;
         this._autoHelp = on;
         return this;
     };
-
-    /**
-     * Turn automatic display of version on of off.
-     * on: (optional, defaults to true)
-     */
-    Options.prototype.autoVersion = function (on)
-    {
-        if (on == null) on = true;
-        this._autoVersion = on;
-        return this;
-    }
 
     /**
      * Format a spec for display.
@@ -216,7 +204,7 @@
         var arr = this._specs.slice();
         if (this._autoHelp)
             arr = arr.concat(this.helpSpec);
-        if (this._autoVersion && this._version != null)
+        if (this._version != null)
             arr = arr.concat(this.versionSpec);
         return arr;
     };
@@ -472,7 +460,7 @@
             exit(0);
         }
 
-        if (this._autoVersion && this._version != null && results.version === true)
+        if (this._version != null && results.version === true)
         {
             printAndExit(this._version, 0);
         }
