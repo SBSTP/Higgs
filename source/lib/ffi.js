@@ -280,7 +280,7 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
                         if (chr === 42 && $rt_str_get_data(input, cursor + 1) === 47)
                             break;
                         else if (cursor === end)
-                            throw CParseError('unterminated comment'); 
+                            throw CParseError('unterminated comment');
                     }
                 else
                     throw new CParseUnexpectedError('char', '/', this.loc());
@@ -342,7 +342,7 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
         this.token_type = EOF;
         return;
     };
- 
+
     /*
     Initialize lexer instance
     */
@@ -1204,7 +1204,8 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
                     strProto.set_` + names[i] + ` = function (val)
                     {
                         return ` + mem.store_fun + `(this.ptr, this.offset, val);
-                    };`;
+                    };
+                `;
             }
 
             // setup for next member
@@ -1216,7 +1217,27 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
                `return (function(ptr, offset)
                 {
                     var s = Object.create(strProto);
-                    if ($ir_is_rawptr(ptr))
+                `;
+
+        for (var i = 0; i < names.length; i++)
+        {
+            if (!members[i].load_fun) continue;
+            wrapper_fun +=
+                    `Object.defineProperty(s, "` + names[i] + `", {
+                        configurable: false,
+                        enumerable: true,
+                        get: function () {
+                            return this.get_` + names[i] + `();
+                        },
+                        set: function (val) {
+                            this.set_` + names[i] + `(val);
+                        },
+                    });
+                    `;
+        }
+
+        wrapper_fun +=
+                    `if ($ir_is_rawptr(ptr))
                     {
                        s.ptr = ptr;
                        s.offset = offset || 0;
@@ -1335,7 +1356,27 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
                `return (function(ptr, offset)
                 {
                     var s = Object.create(strProto);
-                    if ($ir_is_rawptr(ptr))
+                `;
+
+        for (var i = 0; i < names.length; i++)
+        {
+            if (!members[i].load_fun) continue;
+            wrapper_fun +=
+                    `Object.defineProperty(s, "` + names[i] + `", {
+                        configurable: false,
+                        enumerable: true,
+                        get: function () {
+                            return this.get_` + names[i] + `();
+                        },
+                        set: function (val) {
+                            this.set_` + names[i] + `(val);
+                        },
+                    });
+                    `;
+        }
+
+        wrapper_fun +=
+                    `if ($ir_is_rawptr(ptr))
                     {
                        if (ptr === $nullptr)
                            throw 'CStruct cannot wrap null ptr.';
@@ -1752,7 +1793,7 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
         var ptr;
         var dec_type;
         var dec_name;
- 
+
         do
         {
             dec = dlist[i];
@@ -2051,4 +2092,3 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
     exports.os = os_name;
 
 })(exports);
-
