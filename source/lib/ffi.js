@@ -34,7 +34,6 @@
 *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 *****************************************************************************/
-
 /**
 FFI - provides functionality for writing bindings to/wrappers for C code.
 */
@@ -1288,6 +1287,8 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
         var loader_dec = '';
         var loader_n = 0;
         var arg_str;
+
+        require('lib/console').log(members);
 
         var wrapper_fun =
             `(function(c)
