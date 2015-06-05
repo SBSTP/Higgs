@@ -1269,9 +1269,12 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
         var loaders = [];
         var loader_n = 0;
         var loader_gens = [];
+        var constructors = [];
+        var getter;
+        var setter;
 
         var wrapper_fun = `
-            (function(c, loaders)
+            (function(c, loaders, constructors)
             {
                 var strProto = {};
                 strProto.wrap = function(ptr)
@@ -1337,16 +1340,40 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
 
         for (var i = 0; i < names.length; i++)
         {
-            if (!members[i].load_fun) continue;
+            mem = members[i];
+            // If memeber is not a pointer and does not have a loader, create
+            // a property that uses the "old" getter/setter
+            if (mem.wrapper !== "CPtr" && mem.load_fun) {
+                getter = "return this.get_" + names[i] + "();";
+                setter = "this.set_" + names[i] + "(val);"
+
+            // Member is a pointer, analyze the type it points to.
+            } else if (mem.wrapper === "CPtr") {
+                switch (mem.to.wrapper) {
+                    // For a struct of union, use the constructor of the "to" type.
+                    case "CStruct":
+                    case "CUnion":
+                        constructors.push(mem.to.wrapper_fun);
+                        getter = "return constructors[" + (constructors.length - 1) + "](this.get_" + names[i] + "());";
+                        setter = "this.set_" + names[i] + "(typeof(val) === 'object' ? val.ptr : val);";
+                        break;
+                    // For a builtin type, use the $ir functions
+                    case "CType":
+                        getter = "return " + mem.to.load_fun + "(this.get_" + names[i] + "());";
+                        setter = mem.to.store_fun + "(this.get_" + names[i] + "(), val);";
+                        break;
+                }
+            }
+
             wrapper_fun +=
                     `Object.defineProperty(s, "` + names[i] + `", {
                         configurable: false,
                         enumerable: true,
                         get: function () {
-                            return this.get_` + names[i] + `();
+                            ` + getter + `
                         },
                         set: function (val) {
-                            this.set_` + names[i] + `(val);
+                            ` + setter + `
                         },
                     });
                     `;
@@ -1370,7 +1397,8 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
                 });
             })`;
 
-        return eval(wrapper_fun)(c, loaders);
+        print(wrapper_fun);
+        return eval(wrapper_fun)(c, loaders, constructors);
     }
 
     /**
