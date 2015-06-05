@@ -1158,13 +1158,12 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
         var mem;
         var type_size;
         var loader;
-        var loaders;
+        var loaders = [];
         var loader_n = 0;
-        var loader_args = [];
         var loader_gens = [];
 
-        var wrapper_fun =
-           `(function(c)
+        var wrapper_fun = `
+            (function(c, loaders)
             {
                 var strProto = {};`;
 
@@ -1187,12 +1186,10 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
             {
                 // This member uses a wrapper
                 loaders = loaders || [];
-                loader_n += 1;
-                loader_args.push('ld' + loader_n);
                 loaders.push(mem.wrapper_fun);
-                loader_gens.push(`\
-                    s.` + names[i] + ` = ld` +
-                        loader_n + `(s.ptr, s.offset);`);
+                loader_gens.push(`
+                    s.` + names[i] + ` = loaders[` + (loader_n++) + `](s.ptr, s.offset);`
+                );
             }
             else
             {
@@ -1254,22 +1251,7 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
             })
         `;
 
-        if (loader_n > 0)
-        {
-            // If any of the members use wrappers, add access to the wrapping functions
-            wrapper_fun =
-                `(function(` + loader_args.join(', ') + `)
-                 {
-                     return ` + wrapper_fun + `
-                 })
-                `;
-            return eval(wrapper_fun).apply(this, loaders)(c);
-        }
-        else
-        {
-            // ...otherwise just return the wrapping function
-            return eval(wrapper_fun)(c);
-        }
+        return eval(wrapper_fun)(c, loaders);
     }
 
     /**
@@ -1284,14 +1266,13 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
         var type_size;
         var d;
         var loader;
-        var loaders;
+        var loaders = [];
         var loader_n = 0;
-        var loader_args = [];
         var loader_gens = [];
 
-        var wrapper_fun =
-            `(function(c)
-              {
+        var wrapper_fun = `
+            (function(c, loaders)
+            {
                 var strProto = {};
                 strProto.wrap = function(ptr)
                 {
@@ -1321,17 +1302,14 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
             if (!loader)
             {
                 // This member uses a wrapper
-                loaders = loaders || [];
-                loader_n += 1;
-                loader_args.push('ld' + loader_n);
                 loaders.push(mem.wrapper_fun);
                 loader_gens.push(`\
-                    s.` + names[i] + ` = ld` +
-                        loader_n + `(s.ptr, s.offset + ` + mem_offset + `);`);
+                    s.` + names[i] + ` = loaders[` + (loader_n++) +  `]` +
+                    `(s.ptr, s.offset + ` + mem_offset + `);`
+                );
             }
             else
             {
-                // This member uses simple getter/setter
                 wrapper_fun +=
                    `strProto.get_` + names[i] + ` = function ()
                     {
@@ -1392,21 +1370,7 @@ FFI - provides functionality for writing bindings to/wrappers for C code.
                 });
             })`;
 
-        if (loader_n > 0)
-        {
-            // If any of the members use wrappers, add access to the wrapping functions
-            wrapper_fun =
-                `(function(` + loader_args.join(', ') + `)
-                 {
-                     return ` + wrapper_fun + `;
-                 })`;
-            return eval(wrapper_fun).apply(this, loaders)(c);
-        }
-        else
-        {
-            // ...otherwise just return the wrapping function
-            return eval(wrapper_fun)(c);
-        }
+        return eval(wrapper_fun)(c, loaders);
     }
 
     /**
